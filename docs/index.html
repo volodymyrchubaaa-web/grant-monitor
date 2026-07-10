@@ -7,34 +7,35 @@
 <meta name="description" content="Моніторинг грантових та інвестиційних можливостей для Жовтанецької територіальної громади.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="site-header">
+<nav class="nav">
   <div class="wrap">
-    <div class="brand">
-      <span class="brand-mark">Ж</span>
-      <div class="brand-text">
-        <strong>Жовтанецька ТГ</strong>
-        <span>Грантовий моніторинг</span>
-      </div>
-    </div>
-    <div class="badge" id="generated-badge">
-      <span class="dot"></span>
-      <span id="generated-at">оновлюється…</span>
+    <a href="#" class="wordmark"><span class="glyph">▲</span> Грант-монітор</a>
+    <div class="nav-right">
+      <span class="status-pill"><span class="dot"></span><span id="generated-at">оновлюється…</span></span>
+      <a class="btn btn-ghost" href="grants.json">JSON-фід</a>
     </div>
   </div>
-</header>
+</nav>
 
 <section class="hero">
   <div class="wrap">
+    <span class="eyebrow">Жовтанецька ТГ · Львівська область</span>
     <h1>Готові інвестиційні та грантові можливості</h1>
     <p class="lede">
       Автоматизований моніторинг грантів, донорських програм та інвестиційних
-      конкурсів, релевантних Жовтанецькій громаді — Львівська область.
+      конкурсів, релевантних Жовтанецькій громаді.
     </p>
+
+    <div class="cli-panel">
+      <div class="cli-line"><span class="cli-prefix">▲</span><span>grants monitor --source=eu-funding-portal</span></div>
+      <div class="cli-line"><span class="cli-ok">✓</span><span class="cli-muted" id="cli-status">завантаження даних…</span></div>
+    </div>
+
     <div class="stats" id="stats"></div>
   </div>
 </section>
@@ -42,13 +43,13 @@
 <section class="filters">
   <div class="wrap">
     <label>
-      <span>Сектор</span>
+      <span class="f-label">Сектор</span>
       <select id="f-sector">
         <option value="">Всі</option>
       </select>
     </label>
     <label>
-      <span>Статус</span>
+      <span class="f-label">Статус</span>
       <select id="f-status">
         <option value="">Всі</option>
         <option value="new">Актуальні</option>
@@ -57,7 +58,7 @@
       </select>
     </label>
     <label>
-      <span>Заявник</span>
+      <span class="f-label">Заявник</span>
       <select id="f-oms">
         <option value="">Всі</option>
         <option value="yes">ОМС прийнятний</option>

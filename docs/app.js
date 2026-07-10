@@ -20,11 +20,6 @@ function sectorLabel(sector) {
   return SECTOR_LABELS[sector] || sector || "Інше";
 }
 
-function sectorClass(sector) {
-  const label = sectorLabel(sector).toLowerCase();
-  return "sector-" + label.replace(/[^a-zа-яіїєґ]/gi, "");
-}
-
 function fmtDate(iso) {
   if (!iso) return "—";
   try {
@@ -55,10 +50,11 @@ function renderCard(g) {
   const closed = g.status === "closed";
   const review = g.status === "needs_review";
 
-  const tags = [`<span class="tag ${sectorClass(g.sector)}">${sector}</span>`];
-  if (closed) tags.push(`<span class="tag closed">Дедлайн минув</span>`);
-  if (review) tags.push(`<span class="tag review">Потребує перевірки</span>`);
-  if (g.needs_partner_org) tags.push(`<span class="tag partner">Потрібен партнер</span>`);
+  const tags = [`<span class="tag">${sector}</span>`];
+  if (g.is_oms_eligible) tags.push(`<span class="tag tag-accent">ОМС прийнятний</span>`);
+  if (closed) tags.push(`<span class="tag tag-muted">Дедлайн минув</span>`);
+  if (review) tags.push(`<span class="tag tag-muted">Потребує перевірки</span>`);
+  if (g.needs_partner_org) tags.push(`<span class="tag tag-solid">Потрібен партнер</span>`);
 
   const partnerNote = g.needs_partner_org
     ? `<div class="partner-note">ОМС не є прямим заявником — шукайте ГО/БФ-партнера для подання.${
@@ -118,7 +114,7 @@ function renderStats(grants) {
   ];
 
   document.getElementById("stats").innerHTML = stats
-    .map((s) => `<div><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>`)
+    .map((s) => `<div class="stat-cell"><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>`)
     .join("");
 }
 
@@ -144,6 +140,11 @@ async function init() {
       ? "Оновлено: " + new Date(data.generated_at).toLocaleString("uk-UA")
       : "Ще не оновлювалось";
 
+    const cliStatus = document.getElementById("cli-status");
+    cliStatus.textContent = `знайдено ${ALL_GRANTS.length} записів · оновлено ${
+      data.generated_at ? new Date(data.generated_at).toLocaleString("uk-UA") : "—"
+    }`;
+
     renderStats(ALL_GRANTS);
     populateSectorFilter(ALL_GRANTS);
     applyFilters();
@@ -155,6 +156,7 @@ async function init() {
     document.getElementById("grid").innerHTML = "";
     document.getElementById("empty").hidden = false;
     document.getElementById("empty").textContent = "Не вдалося завантажити дані. Спробуйте пізніше.";
+    document.getElementById("cli-status").textContent = "помилка завантаження";
     console.error(err);
   }
 }
