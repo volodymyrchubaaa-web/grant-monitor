@@ -1,0 +1,16 @@
+[Unit]
+Description=Grant Monitor — Жовтанецька ТГ (FastAPI)
+After=network.target
+
+[Service]
+Type=simple
+User=grant-monitor
+Group=grant-monitor
+WorkingDirectory=/opt/grant-monitor
+EnvironmentFile=/opt/grant-monitor/.env
+ExecStart=/opt/grant-monitor/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

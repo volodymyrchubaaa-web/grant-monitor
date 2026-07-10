@@ -33,6 +33,58 @@ pytest tests/
 `test_eu_funding_portal.py` — smoke-тест, робить реальний запит до
 зовнішнього API EU Funding & Tenders Portal (без моків).
 
+## Деплой на VPS громади
+
+Готові конфіги лежать у `deploy/`. Кроки на сервері (Ubuntu/Debian,
+припускаємо що nginx + certbot вже налаштовані для основного сайту):
+
+```bash
+# 1. Код на сервер
+sudo mkdir -p /opt/grant-monitor
+sudo chown $USER:$USER /opt/grant-monitor
+git clone <URL_РЕПОЗИТОРІЮ> /opt/grant-monitor
+cd /opt/grant-monitor
+
+# 2. Залежності
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Конфіг
+cp .env.example .env
+nano .env   # вписати ANTHROPIC_API_KEY; DATABASE_URL можна лишити sqlite:///./grants.db
+
+# 4. Системний користувач (ізоляція процесу)
+sudo useradd -r -s /usr/sbin/nologin grant-monitor
+sudo chown -R grant-monitor:grant-monitor /opt/grant-monitor
+
+# 5. systemd-сервіс
+sudo cp deploy/grant-monitor.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now grant-monitor
+sudo systemctl status grant-monitor   # перевірити що запустився
+
+# 6. nginx reverse proxy
+sudo cp deploy/nginx-grant-monitor.conf /etc/nginx/sites-available/grant-monitor
+# відредагувати server_name на реальний (суб)домен
+sudo ln -s /etc/nginx/sites-available/grant-monitor /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+
+# 7. SSL
+sudo certbot --nginx -d grants.ВАШ-ДОМЕН
+```
+
+Оновлення після змін у коді:
+```bash
+cd /opt/grant-monitor && git pull
+sudo -u grant-monitor venv/bin/pip install -r requirements.txt
+sudo systemctl restart grant-monitor
+```
+
+Сервіс слухає лише `127.0.0.1:8001` — назовні доступний тільки через nginx.
+Фоновий APScheduler (кожні `FETCH_INTERVAL_HOURS` год) працює безперервно,
+бо процес не засинає (на відміну від безкоштовних тарифів Render/Railway).
+
 ## Деплой на Railway
 
 1. Створити git-репозиторій (якщо ще не створено) і запушити на GitHub.
