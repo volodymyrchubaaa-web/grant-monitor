@@ -28,6 +28,7 @@ const SOURCE_LABELS = {
   prostir_ua_grants: "Громадський Простір (prostir.ua)",
   gurt_org_ua: "ГУРТ (gurt.org.ua)",
   getgrant_ua: "GetGrant.ua",
+  international_donors_direct: "Прямі джерела донорів",
 };
 
 function sourceLabel(source) {
@@ -78,10 +79,12 @@ function renderCard(g) {
     ? `<div class="partner-note">ОМС не є прямим заявником — шукайте ГО/БФ-партнера для подання.${
         g.partner_org_name ? ` Пропозиція: <strong>${g.partner_org_name}</strong>` +
           (g.partner_org_url ? ` — <a href="${g.partner_org_url}" target="_blank" rel="noopener">сайт</a>` : "") +
-          (g.partner_org_contact ? ` — <a href="${g.partner_org_contact}" target="_blank" rel="noopener">контакти</a>` : "")
+          (g.partner_org_contact ? ` — <a href="mailto:${g.partner_org_contact}">${g.partner_org_contact}</a>` : "")
           : ""
       }</div>`
     : "";
+
+  const methodology = renderMethodology(g);
 
   return `
     <article class="card" data-sector="${g.sector || ""}" data-status="${g.status || ""}" data-oms="${g.is_oms_eligible ? "yes" : ""}" data-partner="${g.needs_partner_org ? "partner" : ""}">
@@ -98,7 +101,70 @@ function renderCard(g) {
         <li><span class="k">Ймовірність успіху</span><span class="v ${probClass(g.success_probability)}">${g.success_probability != null ? Math.round(g.success_probability * 100) + "%" : "—"}</span></li>
       </ul>
       ${partnerNote}
+      ${methodology}
     </article>
+  `;
+}
+
+const CHECKLIST_PHASE_ORDER = ["📋 ПІДГОТОВКА", "🔬 АНАЛІЗ", "✍️ НАПИСАННЯ", "💰 БЮДЖЕТ", "✅ ФІНАЛІЗАЦІЯ"];
+
+function renderChecklist(checklist) {
+  if (!checklist || !checklist.length) return "";
+  const byPhase = {};
+  checklist.forEach((step) => {
+    (byPhase[step.phase] = byPhase[step.phase] || []).push(step);
+  });
+  const phases = [...new Set([...CHECKLIST_PHASE_ORDER, ...Object.keys(byPhase)])].filter((p) => byPhase[p]);
+  return phases
+    .map(
+      (phase) => `
+        <div class="checklist-phase">
+          <div class="checklist-phase-title">${phase}</div>
+          <ol class="checklist-steps">
+            ${byPhase[phase]
+              .map((s) => `<li><span class="step-text">${s.text}</span><span class="step-detail">${s.detail || ""}</span></li>`)
+              .join("")}
+          </ol>
+        </div>`
+    )
+    .join("");
+}
+
+function renderMethodology(g) {
+  const hasReframing = g.reframing_bad && g.reframing_good;
+  const hasTips = g.application_tips && g.application_tips.length;
+  const hasChecklist = g.checklist && g.checklist.length;
+  if (!hasReframing && !hasTips && !hasChecklist) return "";
+
+  const reframingBlock = hasReframing
+    ? `<div class="reframe-box">
+        <div class="reframe-row reframe-bad"><span class="k">НЕ</span><span class="v">${g.reframing_bad}</span></div>
+        <div class="reframe-row reframe-good"><span class="k">А</span><span class="v">${g.reframing_good}</span></div>
+        ${
+          g.reframing_soft_components && g.reframing_soft_components.length
+            ? `<ul class="soft-components">${g.reframing_soft_components.map((s) => `<li>${s}</li>`).join("")}</ul>`
+            : ""
+        }
+      </div>`
+    : "";
+
+  const tipsBlock = hasTips
+    ? `<ul class="tips-list">${g.application_tips.map((t) => `<li>${t}</li>`).join("")}</ul>`
+    : "";
+
+  const checklistBlock = hasChecklist
+    ? `<div class="checklist">${renderChecklist(g.checklist)}</div>`
+    : "";
+
+  return `
+    <details class="methodology">
+      <summary>Методологія заявки</summary>
+      <div class="methodology-body">
+        ${reframingBlock}
+        ${tipsBlock}
+        ${checklistBlock}
+      </div>
+    </details>
   `;
 }
 

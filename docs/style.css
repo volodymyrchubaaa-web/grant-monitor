@@ -323,6 +323,142 @@ main.wrap { padding: 40px 24px 80px; }
 .partner-note strong { color: var(--obsidian); }
 .partner-note a { color: var(--obsidian); text-decoration: underline; }
 
+/* ── Methodology (reframing / tips / checklist) ── */
+.methodology {
+  margin-top: 14px;
+  box-shadow: inset 0 1px 0 var(--hairline);
+  padding-top: 12px;
+}
+.methodology summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.071em;
+  text-transform: uppercase;
+  color: var(--stone);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.methodology summary::-webkit-details-marker { display: none; }
+.methodology summary::before {
+  content: "▸";
+  color: var(--smoke);
+  transition: transform 0.15s ease;
+}
+.methodology[open] summary::before { transform: rotate(90deg); }
+.methodology summary:hover { color: var(--obsidian); }
+
+.methodology-body { margin-top: 12px; display: flex; flex-direction: column; gap: 16px; }
+
+.reframe-box {
+  background: var(--paper);
+  box-shadow: var(--ring-1);
+  border-radius: var(--r-button);
+  padding: 12px;
+  font-size: 13px;
+}
+.reframe-row { display: flex; gap: 8px; align-items: baseline; }
+.reframe-row + .reframe-row { margin-top: 6px; }
+.reframe-row .k {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--smoke);
+  flex-shrink: 0;
+  width: 16px;
+}
+.reframe-bad .v { color: var(--smoke); text-decoration: line-through; }
+.reframe-good .v { color: var(--obsidian); font-weight: 500; }
+.soft-components {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 8px 0 0;
+  box-shadow: inset 0 1px 0 var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.soft-components li {
+  font-size: 12px;
+  color: var(--charcoal);
+  padding-left: 12px;
+  position: relative;
+}
+.soft-components li::before {
+  content: "+";
+  position: absolute;
+  left: 0;
+  color: var(--green);
+}
+
+.tips-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  color: var(--charcoal);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tips-list li {
+  padding-left: 14px;
+  position: relative;
+}
+.tips-list li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--stone);
+}
+
+.checklist { display: flex; flex-direction: column; gap: 12px; }
+.checklist-phase-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--obsidian);
+  margin-bottom: 6px;
+}
+.checklist-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.checklist-steps li {
+  counter-increment: step;
+  padding: 8px 10px 8px 30px;
+  position: relative;
+  background: var(--paper);
+  border-radius: var(--r-button);
+  box-shadow: var(--ring-1);
+}
+.checklist-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--smoke);
+}
+.checklist-steps .step-text {
+  display: block;
+  font-size: 13px;
+  color: var(--obsidian);
+}
+.checklist-steps .step-detail {
+  display: block;
+  font-size: 12px;
+  color: var(--stone);
+  margin-top: 2px;
+}
+
 /* ── Footer ── */
 .site-footer {
   padding: 32px 0 48px;

@@ -28,6 +28,16 @@ class GrantOut(BaseModel):
     partner_org_url: str | None
     success_probability: float | None
     probability_rationale: str
+
+    application_tips: list[str] | None
+    reframing_bad: str | None
+    reframing_good: str | None
+    reframing_soft_components: list[str] | None
+    theory_of_change: dict | None
+    logframe_indicator: str | None
+    logframe_source: str | None
+    checklist: list[dict] | None
+
     status: str
     fetched_at: dt.datetime
 

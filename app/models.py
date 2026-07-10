@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from sqlalchemy import Boolean, DateTime, Float, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, Float, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -41,6 +41,16 @@ class Grant(Base):
     # Скоринг (pipeline/score.py) — заглушка, доопрацьовується пізніше
     success_probability: Mapped[float | None] = mapped_column(Float, nullable=True)
     probability_rationale: Mapped[str] = mapped_column(Text, default="")
+
+    # Методологія заявки (pipeline/methodology.py)
+    application_tips: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    reframing_bad: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reframing_good: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reframing_soft_components: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    theory_of_change: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    logframe_indicator: Mapped[str | None] = mapped_column(Text, nullable=True)
+    logframe_source: Mapped[str | None] = mapped_column(Text, nullable=True)
+    checklist: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
     # Службові поля
     raw_text: Mapped[str] = mapped_column(Text, default="")

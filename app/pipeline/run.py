@@ -12,6 +12,13 @@ from sqlalchemy.orm import Session
 from app.models import Grant
 from app.pipeline.extract import extract
 from app.pipeline.match import match
+from app.pipeline.methodology import (
+    generate_checklist,
+    generate_logframe,
+    generate_reframing,
+    generate_theory_of_change,
+    generate_tips,
+)
 from app.pipeline.partners import find_partner
 from app.pipeline.score import score
 from app.sources.base import SourceConnector
@@ -107,3 +114,25 @@ def _apply_fields(grant: Grant, item, draft, match_result, score_result) -> None
     grant.probability_rationale = score_result.rationale
     grant.raw_text = item.raw_text
     grant.status = match_result.status
+
+    donor_hint = f"{item.source} {draft.title}"
+    reframing = generate_reframing(draft.sector, item.raw_text)
+    theory_of_change = generate_theory_of_change(draft.sector, draft.title)
+    logframe = generate_logframe(draft.sector)
+    grant.application_tips = generate_tips(donor_hint, draft.sector, item.raw_text)
+    grant.reframing_bad = reframing.bad
+    grant.reframing_good = reframing.good
+    grant.reframing_soft_components = reframing.soft_components
+    grant.theory_of_change = {
+        "problem": theory_of_change.problem,
+        "causes": theory_of_change.causes,
+        "intervention": theory_of_change.intervention,
+        "outputs": theory_of_change.outputs,
+        "outcomes": theory_of_change.outcomes,
+        "impact": theory_of_change.impact,
+    }
+    grant.logframe_indicator = logframe.indicator
+    grant.logframe_source = logframe.source
+    grant.checklist = generate_checklist(
+        match_result.needs_partner_org, grant.partner_org_name, reframing
+    )
