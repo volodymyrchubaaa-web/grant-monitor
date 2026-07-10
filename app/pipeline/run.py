@@ -12,10 +12,14 @@ from sqlalchemy.orm import Session
 from app.models import Grant
 from app.pipeline.extract import extract
 from app.pipeline.match import match
+from app.pipeline.partners import find_partner
 from app.pipeline.score import score
 from app.sources.base import SourceConnector
 from app.sources.decentralization_grants import DecentralizationGrantsConnector
 from app.sources.eu_funding_portal import EUFundingPortalConnector
+from app.sources.getgrant_grants import GetGrantConnector
+from app.sources.gurt_grants import GurtGrantsConnector
+from app.sources.prostir_grants import ProstirGrantsConnector
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +35,9 @@ SOURCES: list[SourceConnector] = [
     EUFundingPortalConnector(),
     EUFundingPortalConnector(query=EU_CROSS_BORDER_QUERY),
     DecentralizationGrantsConnector(),
+    ProstirGrantsConnector(),
+    GurtGrantsConnector(),
+    GetGrantConnector(),
 ]
 
 
@@ -90,6 +97,12 @@ def _apply_fields(grant: Grant, item, draft, match_result, score_result) -> None
     grant.is_lviv_relevant = match_result.is_lviv_relevant
     grant.is_oms_eligible = match_result.is_oms_eligible
     grant.needs_partner_org = match_result.needs_partner_org
+    if match_result.needs_partner_org:
+        partner = find_partner(draft.sector, item.raw_text)
+        if partner:
+            grant.partner_org_name = partner.name
+            grant.partner_org_contact = partner.contact
+            grant.partner_org_url = partner.website
     grant.success_probability = score_result.success_probability
     grant.probability_rationale = score_result.rationale
     grant.raw_text = item.raw_text

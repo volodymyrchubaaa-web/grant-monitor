@@ -13,6 +13,8 @@ const SECTOR_LABELS = {
   "цифровізація адмінпослуг": "Цифровізація",
   "туризм": "Туризм",
   "туризм та збереження культурної спадщини": "Туризм",
+  "соціальний захист": "Соц. захист",
+  "євроінтеграція": "Євроінтеграція",
   "інше": "Інше",
 };
 
@@ -23,6 +25,9 @@ function sectorLabel(sector) {
 const SOURCE_LABELS = {
   eu_funding_tenders_portal: "EU Funding & Tenders Portal",
   decentralization_gov_ua_grants: "Децентралізація.gov.ua",
+  prostir_ua_grants: "Громадський Простір (prostir.ua)",
+  gurt_org_ua: "ГУРТ (gurt.org.ua)",
+  getgrant_ua: "GetGrant.ua",
 };
 
 function sourceLabel(source) {
