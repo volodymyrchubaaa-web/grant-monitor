@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grant Monitor — Жовтанецька ТГ</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Grant Monitor</h1>
+    <p>Моніторинг грантових можливостей для Жовтанецької територіальної громади</p>
+    <form method="get" action="/">
+      <select name="sector">
+        <option value="">Усі сектори</option>
+        {% for s in sectors %}
+        <option value="{{ s }}" {% if s == filters.sector %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <select name="is_oms_eligible">
+        <option value="">Тип заявника: усі</option>
+        <option value="true" {% if filters.is_oms_eligible == 'true' %}selected{% endif %}>ОМС прийнятний</option>
+        <option value="false" {% if filters.is_oms_eligible == 'false' %}selected{% endif %}>Потрібен партнер</option>
+      </select>
+      <select name="status">
+        <option value="">Статус: усі</option>
+        <option value="new" {% if filters.status == 'new' %}selected{% endif %}>new</option>
+        <option value="needs_review" {% if filters.status == 'needs_review' %}selected{% endif %}>needs_review</option>
+        <option value="closed" {% if filters.status == 'closed' %}selected{% endif %}>closed (дедлайн минув)</option>
+      </select>
+      <button type="submit">Фільтрувати</button>
+      <button type="submit" formaction="/refresh" formmethod="post">Оновити дані джерел</button>
+    </form>
+  </header>
+
+  <main>
+    {% if grants|length == 0 %}
+    <p class="empty">Грантів поки немає. Натисніть «Оновити дані джерел».</p>
+    {% endif %}
+    <div class="grid">
+      {% for g in grants %}
+      <article class="card">
+        <div class="card-top">
+          <span class="tag sector">{{ g.sector }}</span>
+          {% if g.needs_partner_org %}<span class="tag partner">потрібен партнер</span>{% endif %}
+          {% if g.status == 'needs_review' %}<span class="tag review">на перевірку</span>{% endif %}
+        </div>
+        <h3><a href="{{ g.url }}" target="_blank" rel="noopener">{{ g.title }}</a></h3>
+        <p class="desc">{{ g.description }}</p>
+        <ul class="meta">
+          <li><strong>Дедлайн:</strong> {{ g.deadline.strftime('%Y-%m-%d') if g.deadline else '—' }}</li>
+          <li><strong>Бюджет:</strong> {{ g.amount_min or '—' }}–{{ g.amount_max or '—' }} {{ g.currency }}</li>
+          <li><strong>Заявник:</strong> {{ g.applicant_type_raw or '—' }}</li>
+          <li><strong>Локація:</strong> {{ g.location_raw or '—' }}</li>
+          <li><strong>Ймовірність успіху:</strong> {{ (g.success_probability * 100) | round(0) if g.success_probability is not none else '—' }}%</li>
+        </ul>
+        {% if g.needs_partner_org %}
+        <p class="partner-note">
+          ОМС не є прийнятним заявником — потрібна організація-партнер (ГО/БФ).
+          {% if g.partner_org_name %}
+          Знайдено: {{ g.partner_org_name }}
+          {% if g.partner_org_contact %} — <a href="{{ g.partner_org_contact }}">контакт</a>{% endif %}
+          {% if g.partner_org_url %} — <a href="{{ g.partner_org_url }}">сайт</a>{% endif %}
+          {% else %}
+          (пошук партнера — наступна ітерація)
+          {% endif %}
+        </p>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </main>
+</body>
+</html>
