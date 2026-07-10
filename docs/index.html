@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Грантовий моніторинг — Жовтанецька ТГ</title>
+<meta name="description" content="Моніторинг грантових та інвестиційних можливостей для Жовтанецької територіальної громади.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand">
+      <span class="brand-mark">Ж</span>
+      <div class="brand-text">
+        <strong>Жовтанецька ТГ</strong>
+        <span>Грантовий моніторинг</span>
+      </div>
+    </div>
+    <div class="badge" id="generated-badge">
+      <span class="dot"></span>
+      <span id="generated-at">оновлюється…</span>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Готові інвестиційні та грантові можливості</h1>
+    <p class="lede">
+      Автоматизований моніторинг грантів, донорських програм та інвестиційних
+      конкурсів, релевантних Жовтанецькій громаді — Львівська область.
+    </p>
+    <div class="stats" id="stats"></div>
+  </div>
+</section>
+
+<section class="filters">
+  <div class="wrap">
+    <label>
+      <span>Сектор</span>
+      <select id="f-sector">
+        <option value="">Всі</option>
+      </select>
+    </label>
+    <label>
+      <span>Статус</span>
+      <select id="f-status">
+        <option value="">Всі</option>
+        <option value="new">Актуальні</option>
+        <option value="needs_review">Потребують перевірки</option>
+        <option value="closed">Закриті (дедлайн минув)</option>
+      </select>
+    </label>
+    <label>
+      <span>Заявник</span>
+      <select id="f-oms">
+        <option value="">Всі</option>
+        <option value="yes">ОМС прийнятний</option>
+        <option value="partner">Потрібен партнер (ГО/БФ)</option>
+      </select>
+    </label>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>Записів за цим фільтром не знайдено.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>Жовтанецька територіальна громада · Відділ економічного розвитку, міжнародного співробітництва та залучення інвестицій</p>
+    <p class="src">Дані оновлюються автоматично · <a href="grants.json">JSON-фід</a></p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
