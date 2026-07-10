@@ -32,7 +32,7 @@
     </p>
 
     <div class="cli-panel">
-      <div class="cli-line"><span class="cli-prefix">▲</span><span>grants monitor --source=eu-funding-portal</span></div>
+      <div class="cli-line"><span class="cli-prefix">▲</span><span>grants monitor --sources=eu-funding-portal,decentralization-gov-ua</span></div>
       <div class="cli-line"><span class="cli-ok">✓</span><span class="cli-muted" id="cli-status">завантаження даних…</span></div>
     </div>
 
@@ -63,6 +63,12 @@
         <option value="">Всі</option>
         <option value="yes">ОМС прийнятний</option>
         <option value="partner">Потрібен партнер (ГО/БФ)</option>
+      </select>
+    </label>
+    <label>
+      <span class="f-label">Джерело</span>
+      <select id="f-source">
+        <option value="">Всі</option>
       </select>
     </label>
   </div>

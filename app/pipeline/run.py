@@ -14,11 +14,24 @@ from app.pipeline.extract import extract
 from app.pipeline.match import match
 from app.pipeline.score import score
 from app.sources.base import SourceConnector
+from app.sources.decentralization_grants import DecentralizationGrantsConnector
 from app.sources.eu_funding_portal import EUFundingPortalConnector
 
 logger = logging.getLogger(__name__)
 
-SOURCES: list[SourceConnector] = [EUFundingPortalConnector()]
+# Друга ціль пошуку по EU Funding & Tenders Portal — прикордонне/донорське
+# співробітництво (Interreg, EU Neighbourhood, відновлення), щоб розширити
+# покриття європейських програм окрім загального запиту за замовчуванням.
+EU_CROSS_BORDER_QUERY = (
+    "cross-border cooperation Interreg Neighbourhood Ukraine recovery "
+    "local government reconstruction municipality"
+)
+
+SOURCES: list[SourceConnector] = [
+    EUFundingPortalConnector(),
+    EUFundingPortalConnector(query=EU_CROSS_BORDER_QUERY),
+    DecentralizationGrantsConnector(),
+]
 
 
 def run_pipeline(db: Session) -> dict[str, int]:

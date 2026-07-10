@@ -20,6 +20,15 @@ function sectorLabel(sector) {
   return SECTOR_LABELS[sector] || sector || "Інше";
 }
 
+const SOURCE_LABELS = {
+  eu_funding_tenders_portal: "EU Funding & Tenders Portal",
+  decentralization_gov_ua_grants: "Децентралізація.gov.ua",
+};
+
+function sourceLabel(source) {
+  return SOURCE_LABELS[source] || source || "—";
+}
+
 function fmtDate(iso) {
   if (!iso) return "—";
   try {
@@ -56,6 +65,10 @@ function renderCard(g) {
   if (review) tags.push(`<span class="tag tag-muted">Потребує перевірки</span>`);
   if (g.needs_partner_org) tags.push(`<span class="tag tag-solid">Потрібен партнер</span>`);
 
+  const programRow = g.program_name
+    ? `<li><span class="k">Програма/донор</span><span class="v">${g.program_name}</span></li>`
+    : "";
+
   const partnerNote = g.needs_partner_org
     ? `<div class="partner-note">ОМС не є прямим заявником — шукайте ГО/БФ-партнера для подання.${
         g.partner_org_name ? ` Пропозиція: <strong>${g.partner_org_name}</strong>` +
@@ -75,6 +88,8 @@ function renderCard(g) {
         <li><span class="k">Бюджет</span><span class="v">${fmtAmount(g.amount_min, g.amount_max, g.currency)}</span></li>
         <li><span class="k">Заявник</span><span class="v">${g.applicant_type_raw || (g.is_oms_eligible ? "ОМС прийнятний" : "Уточнюється")}</span></li>
         <li><span class="k">Локація</span><span class="v">${g.location_raw || "—"}</span></li>
+        ${programRow}
+        <li><span class="k">Джерело</span><span class="v">${sourceLabel(g.source)}</span></li>
         <li><span class="k">Ймовірність успіху</span><span class="v ${probClass(g.success_probability)}">${g.success_probability != null ? Math.round(g.success_probability * 100) + "%" : "—"}</span></li>
       </ul>
       ${partnerNote}
@@ -86,12 +101,14 @@ function applyFilters() {
   const sector = document.getElementById("f-sector").value;
   const status = document.getElementById("f-status").value;
   const oms = document.getElementById("f-oms").value;
+  const source = document.getElementById("f-source").value;
 
   const filtered = ALL_GRANTS.filter((g) => {
     if (sector && g.sector !== sector) return false;
     if (status && g.status !== status) return false;
     if (oms === "yes" && !g.is_oms_eligible) return false;
     if (oms === "partner" && !g.needs_partner_org) return false;
+    if (source && g.source !== source) return false;
     return true;
   });
 
@@ -129,6 +146,17 @@ function populateSectorFilter(grants) {
   });
 }
 
+function populateSourceFilter(grants) {
+  const select = document.getElementById("f-source");
+  const sources = [...new Set(grants.map((g) => g.source).filter(Boolean))];
+  sources.forEach((s) => {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = sourceLabel(s);
+    select.appendChild(opt);
+  });
+}
+
 async function init() {
   try {
     const res = await fetch(DATA_URL, { cache: "no-store" });
@@ -147,9 +175,10 @@ async function init() {
 
     renderStats(ALL_GRANTS);
     populateSectorFilter(ALL_GRANTS);
+    populateSourceFilter(ALL_GRANTS);
     applyFilters();
 
-    ["f-sector", "f-status", "f-oms"].forEach((id) =>
+    ["f-sector", "f-status", "f-oms", "f-source"].forEach((id) =>
       document.getElementById(id).addEventListener("change", applyFilters)
     );
   } catch (err) {
