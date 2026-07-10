@@ -29,13 +29,6 @@ class NgoPartner:
 NGO_PARTNERS: tuple[NgoPartner, ...] = (
     # Львівська область — локальні
     NgoPartner(
-        name='Агенція місцевого економічного розвитку (АЛЕР)',
-        description='Консультації з проєктного менеджменту, написання заявок, енергоефективність',
-        website='https://aled.org.ua',
-        contact='info@aled.org.ua',
-        expertise=('енергоефективність', 'економічний розвиток', 'інфраструктура'),
-    ),
-    NgoPartner(
         name='Інститут міста',
         description='Урбаністика, публічні простори, розвиток громад Львівщини',
         website='https://mistosite.org.ua',
@@ -77,13 +70,6 @@ NGO_PARTNERS: tuple[NgoPartner, ...] = (
         website='https://ti-ukraine.org',
         contact='office@ti-ukraine.org',
         expertise=('прозорість', 'відкриті дані', 'антикорупція'),
-    ),
-    NgoPartner(
-        name='ГО "Платформа спільних дій"',
-        description='Підтримка громад у написанні проєктів, навчання грантрайтингу',
-        website='https://sharedaction.org.ua',
-        contact='info@sharedaction.org.ua',
-        expertise=('грантрайтинг', 'навчання', 'стратегічне планування'),
     ),
     NgoPartner(
         name='Українська Гельсінська спілка з прав людини',

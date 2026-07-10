@@ -49,15 +49,6 @@
       </select>
     </label>
     <label>
-      <span class="f-label">Статус</span>
-      <select id="f-status">
-        <option value="">Всі</option>
-        <option value="new">Актуальні</option>
-        <option value="needs_review">Потребують перевірки</option>
-        <option value="closed">Закриті (дедлайн минув)</option>
-      </select>
-    </label>
-    <label>
       <span class="f-label">Заявник</span>
       <select id="f-oms">
         <option value="">Всі</option>
@@ -71,6 +62,11 @@
         <option value="">Всі</option>
       </select>
     </label>
+    <button type="button" id="f-favorites" class="fav-filter-btn" aria-pressed="false">
+      <span class="fav-filter-star">★</span>
+      <span>Обрані</span>
+      <span class="fav-filter-count" id="fav-count">0</span>
+    </button>
   </div>
 </section>
 

@@ -60,36 +60,103 @@ function probClass(p) {
 
 let ALL_GRANTS = [];
 
+const FAV_KEY = "grantMonitor.favorites";
+
+function favId(g) {
+  return `${g.source || ""}::${g.external_id || g.url}`;
+}
+
+function loadFavorites() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveFavorites(set) {
+  localStorage.setItem(FAV_KEY, JSON.stringify([...set]));
+}
+
+let FAVORITES = loadFavorites();
+let SHOW_FAVORITES_ONLY = false;
+
+function toggleFavorite(id) {
+  if (FAVORITES.has(id)) FAVORITES.delete(id);
+  else FAVORITES.add(id);
+  saveFavorites(FAVORITES);
+  updateFavCount();
+}
+
+function updateFavCount() {
+  const el = document.getElementById("fav-count");
+  if (el) el.textContent = FAVORITES.size;
+}
+
+function renderPartnerOrgs(g) {
+  if (!g.needs_partner_org) return "";
+  const orgs = Array.isArray(g.partner_orgs) && g.partner_orgs.length ? g.partner_orgs : null;
+
+  if (!orgs) {
+    return `<div class="partner-note partner-note-warn">ОМС не є прямим заявником — потрібна ГО/БФ-партнер для подання. Конкретну організацію-партнера ще не підібрано, зверніться до відділу економічного розвитку громади.</div>`;
+  }
+
+  const cards = orgs
+    .map(
+      (o) => `
+        <li class="partner-org">
+          <div class="partner-org-name">${o.name}</div>
+          ${o.rationale ? `<div class="partner-org-rationale">${o.rationale}</div>` : ""}
+          <div class="partner-org-contacts">
+            ${o.url ? `<a href="${o.url}" target="_blank" rel="noopener">${o.url.replace(/^https?:\/\//, "")}</a>` : ""}
+            ${o.contact ? `<span class="partner-org-contact">${o.contact}</span>` : ""}
+          </div>
+        </li>`
+    )
+    .join("");
+
+  return `
+    <div class="partner-note">
+      <div class="partner-note-title">ОМС не є прямим заявником — готові кандидати на партнера для подання:</div>
+      <ul class="partner-org-list">${cards}</ul>
+    </div>
+  `;
+}
+
+function renderProjectFit(g) {
+  if (!g.community_project_fit) return "";
+  return `
+    <div class="project-fit">
+      <div class="project-fit-title">Відповідність проєктам громади</div>
+      <p>${g.community_project_fit}</p>
+    </div>
+  `;
+}
+
 function renderCard(g) {
   const sector = sectorLabel(g.sector);
-  const closed = g.status === "closed";
-  const review = g.status === "needs_review";
+  const id = favId(g);
+  const isFav = FAVORITES.has(id);
 
   const tags = [`<span class="tag">${sector}</span>`];
   if (g.is_oms_eligible) tags.push(`<span class="tag tag-accent">ОМС прийнятний</span>`);
-  if (closed) tags.push(`<span class="tag tag-muted">Дедлайн минув</span>`);
-  if (review) tags.push(`<span class="tag tag-muted">Потребує перевірки</span>`);
   if (g.needs_partner_org) tags.push(`<span class="tag tag-solid">Потрібен партнер</span>`);
 
   const programRow = g.program_name
     ? `<li><span class="k">Програма/донор</span><span class="v">${g.program_name}</span></li>`
     : "";
 
-  const partnerNote = g.needs_partner_org
-    ? `<div class="partner-note">ОМС не є прямим заявником — шукайте ГО/БФ-партнера для подання.${
-        g.partner_org_name ? ` Пропозиція: <strong>${g.partner_org_name}</strong>` +
-          (g.partner_org_url ? ` — <a href="${g.partner_org_url}" target="_blank" rel="noopener">сайт</a>` : "") +
-          (g.partner_org_contact ? ` — <a href="mailto:${g.partner_org_contact}">${g.partner_org_contact}</a>` : "")
-          : ""
-      }</div>`
-    : "";
-
+  const partnerNote = renderPartnerOrgs(g);
+  const projectFit = renderProjectFit(g);
   const methodology = renderMethodology(g);
 
   return `
-    <article class="card" data-sector="${g.sector || ""}" data-status="${g.status || ""}" data-oms="${g.is_oms_eligible ? "yes" : ""}" data-partner="${g.needs_partner_org ? "partner" : ""}">
-      <div class="card-top">${tags.join("")}</div>
-      <h3><a href="${g.url}" target="_blank" rel="noopener">${g.title || "Без назви"}</a></h3>
+    <article class="card" data-sector="${g.sector || ""}" data-status="${g.status || ""}" data-oms="${g.is_oms_eligible ? "yes" : ""}" data-partner="${g.needs_partner_org ? "partner" : ""}" data-fav-id="${id}">
+      <div class="card-top">
+        <div class="card-tags">${tags.join("")}</div>
+        <button type="button" class="fav-btn${isFav ? " is-active" : ""}" data-fav-toggle="${id}" aria-pressed="${isFav}" aria-label="Додати в обране" title="Додати в обране">★</button>
+      </div>
+      <h3>${g.title || "Без назви"}</h3>
       <p class="desc">${g.description || ""}</p>
       <ul class="meta">
         <li><span class="k">Дедлайн</span><span class="v">${fmtDate(g.deadline)}</span></li>
@@ -100,8 +167,10 @@ function renderCard(g) {
         <li><span class="k">Джерело</span><span class="v">${sourceLabel(g.source)}</span></li>
         <li><span class="k">Ймовірність успіху</span><span class="v ${probClass(g.success_probability)}">${g.success_probability != null ? Math.round(g.success_probability * 100) + "%" : "—"}</span></li>
       </ul>
+      ${projectFit}
       ${partnerNote}
       ${methodology}
+      <a class="btn-source" href="${g.url}" target="_blank" rel="noopener">Перейти до джерела та подати заявку →</a>
     </article>
   `;
 }
@@ -170,16 +239,15 @@ function renderMethodology(g) {
 
 function applyFilters() {
   const sector = document.getElementById("f-sector").value;
-  const status = document.getElementById("f-status").value;
   const oms = document.getElementById("f-oms").value;
   const source = document.getElementById("f-source").value;
 
   const filtered = ALL_GRANTS.filter((g) => {
     if (sector && g.sector !== sector) return false;
-    if (status && g.status !== status) return false;
     if (oms === "yes" && !g.is_oms_eligible) return false;
     if (oms === "partner" && !g.needs_partner_org) return false;
     if (source && g.source !== source) return false;
+    if (SHOW_FAVORITES_ONLY && !FAVORITES.has(favId(g))) return false;
     return true;
   });
 
@@ -187,6 +255,16 @@ function applyFilters() {
   const empty = document.getElementById("empty");
   grid.innerHTML = filtered.map(renderCard).join("");
   empty.hidden = filtered.length > 0;
+  empty.textContent = SHOW_FAVORITES_ONLY
+    ? "Ви ще не додали жодного гранту в обране."
+    : "Записів за цим фільтром не знайдено.";
+
+  grid.querySelectorAll("[data-fav-toggle]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toggleFavorite(btn.getAttribute("data-fav-toggle"));
+      applyFilters();
+    });
+  });
 }
 
 function renderStats(grants) {
@@ -247,11 +325,20 @@ async function init() {
     renderStats(ALL_GRANTS);
     populateSectorFilter(ALL_GRANTS);
     populateSourceFilter(ALL_GRANTS);
+    updateFavCount();
     applyFilters();
 
-    ["f-sector", "f-status", "f-oms", "f-source"].forEach((id) =>
+    ["f-sector", "f-oms", "f-source"].forEach((id) =>
       document.getElementById(id).addEventListener("change", applyFilters)
     );
+
+    const favBtn = document.getElementById("f-favorites");
+    favBtn.addEventListener("click", () => {
+      SHOW_FAVORITES_ONLY = !SHOW_FAVORITES_ONLY;
+      favBtn.classList.toggle("is-active", SHOW_FAVORITES_ONLY);
+      favBtn.setAttribute("aria-pressed", String(SHOW_FAVORITES_ONLY));
+      applyFilters();
+    });
   } catch (err) {
     document.getElementById("grid").innerHTML = "";
     document.getElementById("empty").hidden = false;
