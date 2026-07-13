@@ -135,9 +135,22 @@ function renderPartnerOrgs(g) {
 
 function renderProjectFit(g) {
   if (!g.community_project_fit) return "";
+  const matches = Array.isArray(g.epp_project_matches) ? g.epp_project_matches : [];
+  const badges = matches
+    .map(
+      (m) => `
+        <div class="epp-match">
+          <span class="epp-match-label">Проєкт ЄПП</span>
+          <span class="epp-match-name">${m.title}</span>
+          ${m.cost_uah ? `<span class="epp-match-cost">${m.cost_uah.toLocaleString("uk-UA")} грн</span>` : ""}
+        </div>
+      `
+    )
+    .join("");
   return `
     <div class="project-fit">
       <div class="project-fit-title">Відповідність проєктам громади</div>
+      ${badges}
       <p>${g.community_project_fit}</p>
     </div>
   `;
