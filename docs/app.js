@@ -96,9 +96,18 @@ function updateFavCount() {
 function renderPartnerOrgs(g) {
   if (!g.needs_partner_org) return "";
   const orgs = Array.isArray(g.partner_orgs) && g.partner_orgs.length ? g.partner_orgs : null;
+  const isMunicipalityConsortium = orgs && orgs.every((o) => o.type === "municipality");
+  const noteTitle = isMunicipalityConsortium
+    ? "Умови гранту вимагають консорціуму — готові кандидати-муніципалітети для партнерства:"
+    : g.is_oms_eligible
+    ? "Умови гранту вимагають партнера — готові кандидати для консорціуму:"
+    : "ОМС не є прямим заявником — готові кандидати на партнера для подання:";
 
   if (!orgs) {
-    return `<div class="partner-note partner-note-warn">ОМС не є прямим заявником — потрібна ГО/БФ-партнер для подання. Конкретну організацію-партнера ще не підібрано, зверніться до відділу економічного розвитку громади.</div>`;
+    const warnText = g.is_oms_eligible
+      ? "Умови гранту вимагають партнера (напр. закордонного муніципалітету для консорціуму) — конкретного кандидата ще не підібрано, зверніться до відділу економічного розвитку громади."
+      : "ОМС не є прямим заявником — потрібна ГО/БФ-партнер для подання. Конкретну організацію-партнера ще не підібрано, зверніться до відділу економічного розвитку громади.";
+    return `<div class="partner-note partner-note-warn">${warnText}</div>`;
   }
 
   const cards = orgs
@@ -106,6 +115,7 @@ function renderPartnerOrgs(g) {
       (o) => `
         <li class="partner-org">
           <div class="partner-org-name">${o.name}</div>
+          ${o.type === "municipality" ? `<div class="partner-org-type">Муніципалітет-партнер (консорціум)</div>` : ""}
           ${o.rationale ? `<div class="partner-org-rationale">${o.rationale}</div>` : ""}
           <div class="partner-org-contacts">
             ${o.url ? `<a href="${o.url}" target="_blank" rel="noopener">${o.url.replace(/^https?:\/\//, "")}</a>` : ""}
@@ -117,7 +127,7 @@ function renderPartnerOrgs(g) {
 
   return `
     <div class="partner-note">
-      <div class="partner-note-title">ОМС не є прямим заявником — готові кандидати на партнера для подання:</div>
+      <div class="partner-note-title">${noteTitle}</div>
       <ul class="partner-org-list">${cards}</ul>
     </div>
   `;
@@ -264,6 +274,23 @@ function applyFilters() {
       toggleFavorite(btn.getAttribute("data-fav-toggle"));
       applyFilters();
     });
+  });
+
+  setupClampToggles(grid);
+}
+
+function setupClampToggles(grid) {
+  grid.querySelectorAll(".card .desc, .project-fit p, .partner-org-rationale").forEach((el) => {
+    if (el.scrollHeight - el.clientHeight <= 2) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "clamp-toggle";
+    btn.textContent = "Показати повністю";
+    btn.addEventListener("click", () => {
+      const expanded = el.classList.toggle("is-expanded");
+      btn.textContent = expanded ? "Згорнути" : "Показати повністю";
+    });
+    el.insertAdjacentElement("afterend", btn);
   });
 }
 
