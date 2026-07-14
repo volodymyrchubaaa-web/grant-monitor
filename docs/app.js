@@ -58,6 +58,16 @@ function probClass(p) {
   return "";
 }
 
+function daysUntil(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  return Math.round((d.getTime() - today.getTime()) / 86400000);
+}
+
 let ALL_GRANTS = [];
 
 const FAV_KEY = "grantMonitor.favorites";
@@ -156,6 +166,29 @@ function renderProjectFit(g) {
   `;
 }
 
+function renderDetails(g) {
+  const projectFit = renderProjectFit(g);
+  const partnerNote = renderPartnerOrgs(g);
+  const methodologyBody = renderMethodologyBody(g);
+  if (!projectFit && !partnerNote && !methodologyBody) return "";
+
+  const hints = [];
+  if (projectFit) hints.push("ЄПП");
+  if (partnerNote) hints.push("партнери");
+  if (methodologyBody) hints.push("методологія");
+
+  return `
+    <details class="card-details">
+      <summary>Деталі та рекомендації <span class="card-details-hint">${hints.join(" · ")}</span></summary>
+      <div class="card-details-body">
+        ${projectFit}
+        ${partnerNote}
+        ${methodologyBody}
+      </div>
+    </details>
+  `;
+}
+
 function renderCard(g) {
   const sector = sectorLabel(g.sector);
   const id = favId(g);
@@ -164,14 +197,18 @@ function renderCard(g) {
   const tags = [`<span class="tag">${sector}</span>`];
   if (g.is_oms_eligible) tags.push(`<span class="tag tag-accent">ОМС прийнятний</span>`);
   if (g.needs_partner_org) tags.push(`<span class="tag tag-solid">Потрібен партнер</span>`);
+  const days = daysUntil(g.deadline);
+  if (days != null && days >= 0 && days <= 21) {
+    tags.push(`<span class="tag tag-urgent">⏳ ${days} дн. до дедлайну</span>`);
+  }
 
-  const programRow = g.program_name
-    ? `<li><span class="k">Програма/донор</span><span class="v">${g.program_name}</span></li>`
-    : "";
+  const secondaryRows = [
+    g.program_name ? `<li><span class="k">Програма/донор</span><span class="v">${g.program_name}</span></li>` : "",
+    `<li><span class="k">Локація</span><span class="v">${g.location_raw || "—"}</span></li>`,
+    `<li><span class="k">Джерело</span><span class="v">${sourceLabel(g.source)}</span></li>`,
+  ].join("");
 
-  const partnerNote = renderPartnerOrgs(g);
-  const projectFit = renderProjectFit(g);
-  const methodology = renderMethodology(g);
+  const details = renderDetails(g);
 
   return `
     <article class="card" data-sector="${g.sector || ""}" data-status="${g.status || ""}" data-oms="${g.is_oms_eligible ? "yes" : ""}" data-partner="${g.needs_partner_org ? "partner" : ""}" data-fav-id="${id}">
@@ -181,18 +218,14 @@ function renderCard(g) {
       </div>
       <h3>${g.title || "Без назви"}</h3>
       <p class="desc">${g.description || ""}</p>
-      <ul class="meta">
-        <li><span class="k">Дедлайн</span><span class="v">${fmtDate(g.deadline)}</span></li>
-        <li><span class="k">Бюджет</span><span class="v">${fmtAmount(g.amount_min, g.amount_max, g.currency)}</span></li>
-        <li><span class="k">Заявник</span><span class="v">${g.applicant_type_raw || (g.is_oms_eligible ? "ОМС прийнятний" : "Уточнюється")}</span></li>
-        <li><span class="k">Локація</span><span class="v">${g.location_raw || "—"}</span></li>
-        ${programRow}
-        <li><span class="k">Джерело</span><span class="v">${sourceLabel(g.source)}</span></li>
-        <li><span class="k">Ймовірність успіху</span><span class="v ${probClass(g.success_probability)}">${g.success_probability != null ? Math.round(g.success_probability * 100) + "%" : "—"}</span></li>
-      </ul>
-      ${projectFit}
-      ${partnerNote}
-      ${methodology}
+      <div class="card-stats">
+        <div class="card-stat"><span class="card-stat-k">Дедлайн</span><span class="card-stat-v">${fmtDate(g.deadline)}</span></div>
+        <div class="card-stat"><span class="card-stat-k">Бюджет</span><span class="card-stat-v">${fmtAmount(g.amount_min, g.amount_max, g.currency)}</span></div>
+        <div class="card-stat"><span class="card-stat-k">Заявник</span><span class="card-stat-v">${g.applicant_type_raw || (g.is_oms_eligible ? "ОМС прийнятний" : "Уточнюється")}</span></div>
+        <div class="card-stat"><span class="card-stat-k">Ймовірність успіху</span><span class="card-stat-v ${probClass(g.success_probability)}">${g.success_probability != null ? Math.round(g.success_probability * 100) + "%" : "—"}</span></div>
+      </div>
+      <ul class="meta-secondary">${secondaryRows}</ul>
+      ${details}
       <a class="btn-source" href="${g.url}" target="_blank" rel="noopener">Перейти до джерела та подати заявку →</a>
     </article>
   `;
@@ -222,7 +255,7 @@ function renderChecklist(checklist) {
     .join("");
 }
 
-function renderMethodology(g) {
+function renderMethodologyBody(g) {
   const hasReframing = g.reframing_bad && g.reframing_good;
   const hasTips = g.application_tips && g.application_tips.length;
   const hasChecklist = g.checklist && g.checklist.length;
@@ -249,14 +282,12 @@ function renderMethodology(g) {
     : "";
 
   return `
-    <details class="methodology">
-      <summary>Методологія заявки</summary>
-      <div class="methodology-body">
-        ${reframingBlock}
-        ${tipsBlock}
-        ${checklistBlock}
-      </div>
-    </details>
+    <div class="methodology-body">
+      <div class="card-details-subtitle">Методологія заявки</div>
+      ${reframingBlock}
+      ${tipsBlock}
+      ${checklistBlock}
+    </div>
   `;
 }
 
@@ -264,6 +295,7 @@ function applyFilters() {
   const sector = document.getElementById("f-sector").value;
   const oms = document.getElementById("f-oms").value;
   const source = document.getElementById("f-source").value;
+  const search = (document.getElementById("f-search").value || "").trim().toLowerCase();
 
   const filtered = ALL_GRANTS.filter((g) => {
     if (sector && g.sector !== sector) return false;
@@ -271,6 +303,10 @@ function applyFilters() {
     if (oms === "partner" && !g.needs_partner_org) return false;
     if (source && g.source !== source) return false;
     if (SHOW_FAVORITES_ONLY && !FAVORITES.has(favId(g))) return false;
+    if (search) {
+      const haystack = `${g.title || ""} ${g.description || ""} ${g.program_name || ""}`.toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
     return true;
   });
 
@@ -289,11 +325,18 @@ function applyFilters() {
     });
   });
 
+  grid.querySelectorAll("details.card-details").forEach((det) => {
+    det.addEventListener("toggle", () => {
+      if (det.open) setupClampToggles(det);
+    });
+  });
+
   setupClampToggles(grid);
 }
 
-function setupClampToggles(grid) {
-  grid.querySelectorAll(".card .desc, .project-fit p, .partner-org-rationale").forEach((el) => {
+function setupClampToggles(root) {
+  root.querySelectorAll(".card .desc, .project-fit p, .partner-org-rationale").forEach((el) => {
+    if (el.nextElementSibling && el.nextElementSibling.classList.contains("clamp-toggle")) return;
     if (el.scrollHeight - el.clientHeight <= 2) return;
     const btn = document.createElement("button");
     btn.type = "button";
@@ -371,6 +414,7 @@ async function init() {
     ["f-sector", "f-oms", "f-source"].forEach((id) =>
       document.getElementById(id).addEventListener("change", applyFilters)
     );
+    document.getElementById("f-search").addEventListener("input", applyFilters);
 
     const favBtn = document.getElementById("f-favorites");
     favBtn.addEventListener("click", () => {
